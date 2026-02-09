@@ -52,7 +52,7 @@ export const card = (bill) => {
         : firstAndLastNames;
 
     return `
-    <div class='bill-card' id='open-bill${bill.id}' data-testid='open-bill${bill.id}'>
+    <div class='bill-card' id='open-bill${bill.id}' data-testid='open-bill${bill.id}' data-bill-id='${bill.id}'>
       <div class='bill-card-name-container'>
         <div class='bill-card-name'> ${firstName} ${lastName} </div>
         <span class='bill-card-grey'> ... </span>
@@ -310,12 +310,16 @@ export const handleShowTickets = (e, bills, index, document) => {
         dashboardState.listCounters[index]++;
     }
 
-    bills.forEach((bill) => {
-        const openBill = document.querySelector(`#open-bill${bill.id}`);
-        if (openBill)
-            openBill.addEventListener("click", (e) =>
-                handleEditTicket(e, bill, bills, document),
-            );
+    // Re-attacher les clics sur toutes les cartes visibles, meme si plusieurs listes sont ouvertes.
+    const billCards = document.querySelectorAll(".bill-card");
+    billCards.forEach((cardEl) => {
+        if (cardEl.dataset.listenerAttached === "true") return;
+        cardEl.dataset.listenerAttached = "true";
+        cardEl.addEventListener("click", (event) => {
+            const billId = cardEl.getAttribute("data-bill-id");
+            const bill = bills.find((item) => `${item.id}` === billId);
+            if (bill) handleEditTicket(event, bill, bills, document);
+        });
     });
 
     return bills;
