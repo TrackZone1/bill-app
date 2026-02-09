@@ -50,6 +50,7 @@ const handleChangeFile = (e, { store, localStorage }) => {
         file.type,
     );
 
+    // Bug fix: refuser les fichiers non image pour eviter une piece jointe invalide.
     if (!isValidExtension || !isValidType) {
         window.alert("Veuillez selectionner un fichier jpg, jpeg ou png.");
         fileInput.value = "";

@@ -54,7 +54,7 @@ const handleSubmitEmployee = (e, { localStorage, onNavigate, store }) => {
 
 /**
  * Gère la soumission du formulaire admin
- * BUG FIX: Utilise les bons data-testid (admin au lieu de employee)
+ * Bug fix: Utilise les bons data-testid (admin au lieu de employee)
  */
 const handleSubmitAdmin = (e, { localStorage, onNavigate, store }) => {
     e.preventDefault();

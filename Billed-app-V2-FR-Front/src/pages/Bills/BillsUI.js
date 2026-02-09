@@ -19,6 +19,7 @@ const row = (bill) => {
     `;
 };
 
+// Tri desc pour afficher les notes du plus recent au plus ancien (test Bills).
 const compareByDateDesc = (a, b) => {
     const dateA = Date.parse(a.date);
     const dateB = Date.parse(b.date);
@@ -34,6 +35,7 @@ const compareByDateDesc = (a, b) => {
 const rows = (data) => {
     if (!data || !data.length) return "";
 
+    // Bug fix: les dates doivent rester en ordre anti-chronologique dans le tableau.
     const sortedBills = [...data].sort(compareByDateDesc);
     return sortedBills.map((bill) => row(bill)).join("");
 };

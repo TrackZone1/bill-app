@@ -141,6 +141,7 @@ export const handleClickIconEye = (icon, document) => {
         : modale.getBoundingClientRect().width;
     const imgWidth = Math.floor(baseWidth * 0.8) || 500;
 
+    // Bug fix: afficher un fallback lisible si aucun justificatif n'est disponible.
     modale.querySelector(".modal-body").innerHTML = billUrl
         ? `<div style='text-align: center;'><img width=${imgWidth} src="${billUrl}" alt="Bill"/></div>`
         : "<div style='text-align: center;'>Aucun justificatif disponible.</div>";
@@ -290,6 +291,7 @@ export const handleShowTickets = (e, bills, index, document) => {
         };
     }
 
+    // Bug fix: compteur par liste pour pouvoir en ouvrir plusieurs sans les bloquer.
     if (dashboardState.listCounters[index] % 2 === 0) {
         const arrow = document.querySelector(`#arrow-icon${index}`);
         if (arrow) arrow.style.transform = "rotate(0deg)";
