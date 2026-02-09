@@ -4,7 +4,7 @@
 
 import LoginUI from "../pages/Login/LoginUI";
 import { initLoginPage } from "../pages/Login/Login.js";
-import { ROUTES } from "../constants/routes";
+import { ROUTES, ROUTES_PATH } from "../constants/routes";
 import { fireEvent, screen, waitFor } from "@testing-library/dom";
 import { localStorageMock } from "../__mocks__/localStorage.js";
 
@@ -116,6 +116,55 @@ describe("Given that I am a user on login page", () => {
             await waitFor(() =>
                 expect(screen.getByText("Mes notes de frais")).toBeTruthy(),
             );
+        });
+    });
+
+    describe("When I do fill fields in correct format and login fails", () => {
+        test("Then the user should be created and redirected to Bills", async () => {
+            const inputData = {
+                email: "johndoe@email.com",
+                password: "azerty",
+            };
+
+            const inputEmailUser = screen.getByTestId("employee-email-input");
+            fireEvent.change(inputEmailUser, {
+                target: { value: inputData.email },
+            });
+
+            const inputPasswordUser = screen.getByTestId(
+                "employee-password-input",
+            );
+            fireEvent.change(inputPasswordUser, {
+                target: { value: inputData.password },
+            });
+
+            const form = screen.getByTestId("form-employee");
+            const onNavigateMock = jest.fn();
+
+            const createMock = jest.fn().mockResolvedValue({});
+            const store = {
+                login: jest
+                    .fn()
+                    .mockRejectedValueOnce(new Error("User not found"))
+                    .mockResolvedValue({ jwt: "fake-jwt" }),
+                users: () => ({
+                    create: createMock,
+                }),
+            };
+
+            initLoginPage({
+                document,
+                localStorage: window.localStorage,
+                onNavigate: onNavigateMock,
+                store,
+            });
+
+            fireEvent.submit(form);
+
+            await waitFor(() =>
+                expect(onNavigateMock).toHaveBeenCalledWith(ROUTES_PATH.Bills),
+            );
+            expect(createMock).toHaveBeenCalled();
         });
     });
 });

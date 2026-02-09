@@ -8,6 +8,7 @@ import {
     initNewBillPage,
     resetBillFileState,
 } from "../pages/NewBill/NewBill.js";
+import { ROUTES_PATH } from "../constants/routes.js";
 import { localStorageMock } from "../__mocks__/localStorage.js";
 
 describe("Given I am connected as an employee", () => {
@@ -61,6 +62,89 @@ describe("Given I am connected as an employee", () => {
             expect(screen.getByText("IT et électronique")).toBeTruthy();
             expect(screen.getByText("Equipement et matériel")).toBeTruthy();
             expect(screen.getByText("Fournitures de bureau")).toBeTruthy();
+        });
+    });
+});
+
+describe("Given I am on NewBill page", () => {
+    describe("When I upload a file with invalid extension", () => {
+        test("Then it should show an alert and reset the input", () => {
+            resetBillFileState();
+            Object.defineProperty(window, "localStorage", {
+                value: localStorageMock,
+            });
+            window.localStorage.setItem(
+                "user",
+                JSON.stringify({ type: "Employee", email: "a@a" }),
+            );
+
+            const alertMock = jest
+                .spyOn(window, "alert")
+                .mockImplementation(() => {});
+            const createBill = jest.fn();
+            const store = {
+                bills: () => ({
+                    create: createBill,
+                }),
+            };
+
+            document.body.innerHTML = NewBillUI();
+            initNewBillPage({
+                document,
+                onNavigate: jest.fn(),
+                store,
+                localStorage: window.localStorage,
+            });
+
+            const fileInput = screen.getByTestId("file");
+            const file = new File(["test"], "test.pdf", {
+                type: "application/pdf",
+            });
+
+            fireEvent.change(fileInput, { target: { files: [file] } });
+
+            expect(alertMock).toHaveBeenCalled();
+            expect(fileInput.value).toBe("");
+            expect(createBill).not.toHaveBeenCalled();
+
+            alertMock.mockRestore();
+        });
+    });
+
+    describe("When I upload a valid file without a store", () => {
+        test("Then it should keep the file and not alert", () => {
+            resetBillFileState();
+            Object.defineProperty(window, "localStorage", {
+                value: localStorageMock,
+            });
+            window.localStorage.setItem(
+                "user",
+                JSON.stringify({ type: "Employee", email: "a@a" }),
+            );
+
+            const alertMock = jest
+                .spyOn(window, "alert")
+                .mockImplementation(() => {});
+
+            document.body.innerHTML = NewBillUI();
+            initNewBillPage({
+                document,
+                onNavigate: jest.fn(),
+                store: null,
+                localStorage: window.localStorage,
+            });
+
+            const fileInput = screen.getByTestId("file");
+            const file = new File(["test"], "test.jpg", {
+                type: "image/jpeg",
+            });
+
+            fireEvent.change(fileInput, { target: { files: [file] } });
+
+            expect(alertMock).not.toHaveBeenCalled();
+            expect(fileInput.files[0].name).toBe("test.jpg");
+
+            alertMock.mockRestore();
         });
     });
 });
@@ -128,6 +212,9 @@ describe("Given I am a user connected as Employee", () => {
             fireEvent.submit(form);
 
             await waitFor(() => expect(updateBill).toHaveBeenCalled());
+            await waitFor(() =>
+                expect(onNavigate).toHaveBeenCalledWith(ROUTES_PATH.Bills),
+            );
             expect(updateBill.mock.calls[0][0].selector).toBe("1234");
         });
     });

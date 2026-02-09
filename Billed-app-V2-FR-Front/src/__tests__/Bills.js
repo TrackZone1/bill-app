@@ -13,6 +13,18 @@ import { getBills, initBillsPage } from "../pages/Bills/Bills.js";
 import router from "../app/Router.js";
 
 jest.mock("../app/store", () => mockStore);
+jest.mock("../app/format.js", () => {
+    const original = jest.requireActual("../app/format.js");
+    return {
+        ...original,
+        formatDate: jest.fn((dateStr) => {
+            if (dateStr === "invalid-date") {
+                throw new Error("Invalid date");
+            }
+            return original.formatDate(dateStr);
+        }),
+    };
+});
 
 describe("Given I am connected as an employee", () => {
     describe("When I am on Bills Page", () => {
@@ -33,6 +45,7 @@ describe("Given I am connected as an employee", () => {
             window.onNavigate(ROUTES_PATH.Bills);
             await waitFor(() => screen.getByTestId("icon-window"));
             const windowIcon = screen.getByTestId("icon-window");
+            expect(windowIcon).toBeTruthy();
             expect(windowIcon.classList.contains("active-icon")).toBe(true);
         });
         test("Then bills should be ordered from earliest to latest", () => {
@@ -108,6 +121,25 @@ describe("Given I am fetching bills", () => {
     test("When store is not provided, Then it should return an empty list", async () => {
         const data = await getBills();
         expect(data).toEqual([]);
+    });
+
+    test("When a bill has an invalid date, Then it should keep raw date", async () => {
+        const store = {
+            bills: () => ({
+                list: () =>
+                    Promise.resolve([
+                        {
+                            id: "test",
+                            date: "invalid-date",
+                            status: "pending",
+                        },
+                    ]),
+            }),
+        };
+
+        const data = await getBills(store);
+        expect(data[0].date).toBe("invalid-date");
+        expect(data[0].status).toBe("En attente");
     });
 
     test("When the API returns an error, Then it should throw", async () => {

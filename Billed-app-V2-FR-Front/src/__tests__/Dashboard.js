@@ -15,6 +15,9 @@ import {
     handleAcceptSubmit,
     handleRefuseSubmit,
     handleClickIconEye,
+    getStatus,
+    getBillsAllUsers,
+    updateBill,
     resetDashboardState,
 } from "../pages/Dashboard/Dashboard.js";
 import { ROUTES, ROUTES_PATH } from "../constants/routes";
@@ -246,6 +249,69 @@ describe("Given I am connected as Admin and I am on Dashboard page and I clicked
             const modale = screen.getByTestId("modaleFileAdmin");
             expect(modale).toBeTruthy();
         });
+    });
+});
+
+describe("Given I am testing Dashboard helper branches", () => {
+    test("Then getStatus should map index to status", () => {
+        expect(getStatus(1)).toBe("pending");
+        expect(getStatus(2)).toBe("accepted");
+        expect(getStatus(3)).toBe("refused");
+    });
+
+    test("When I toggle tickets twice, Then it should close the list", () => {
+        resetDashboardState();
+        document.body.innerHTML = DashboardUI({ data: { bills } });
+
+        handleShowTickets(null, bills, 1, document);
+        const container = document.querySelector("#status-bills-container1");
+        expect(container.innerHTML).not.toBe("");
+
+        handleShowTickets(null, bills, 1, document);
+        expect(container.innerHTML).toBe("");
+    });
+
+    test("When no bill URL is available, Then the modal should show a fallback", () => {
+        document.body.innerHTML = `
+          <div data-testid="icon-eye-d" id="icon-eye-d"></div>
+          <div class="modal" id="modaleFileAdmin1">
+            <div class="modal-dialog"></div>
+            <div class="modal-body"></div>
+          </div>
+        `;
+
+        const showMock = jest.fn();
+        global.bootstrap = {
+            Modal: jest.fn(() => ({ show: showMock })),
+        };
+
+        const icon = document.querySelector("#icon-eye-d");
+        handleClickIconEye(icon, document);
+
+        const modale = document.querySelector("#modaleFileAdmin1");
+        expect(showMock).toHaveBeenCalled();
+        expect(modale.querySelector(".modal-body").innerHTML).toContain(
+            "Aucun justificatif disponible.",
+        );
+
+        delete global.bootstrap;
+    });
+
+    test("When store is missing, Then getBillsAllUsers should return an empty list", async () => {
+        const data = await getBillsAllUsers();
+        expect(data).toEqual([]);
+    });
+
+    test("When updateBill fails, Then it should throw an error", async () => {
+        const store = {
+            bills: () => ({
+                update: () => Promise.reject(new Error("Erreur update")),
+            }),
+        };
+
+        await expect(updateBill(bills[0], store)).rejects.toThrow(
+            "Erreur update",
+        );
     });
 });
 
