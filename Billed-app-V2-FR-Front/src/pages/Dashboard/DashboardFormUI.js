@@ -20,6 +20,30 @@ export const modal = () => `
   `;
 
 export default (bill) => {
+    const normalizeValue = (value, fallback) => {
+        if (!value) return fallback;
+        if (
+            typeof value === "string" &&
+            value.trim().toLowerCase() === "null"
+        ) {
+            return fallback;
+        }
+        return value;
+    };
+
+    const commentary = normalizeValue(
+        bill.commentary,
+        "Aucun commentaire disponible.",
+    );
+    const adminCommentary = normalizeValue(
+        bill.commentAdmin,
+        "Aucun commentaire disponible.",
+    );
+    const fileName = normalizeValue(
+        bill.fileName,
+        "Aucun justificatif disponible.",
+    );
+
     return `
     <div class="container dashboard-form" data-testid="dashboard-form">
       <div class="row">
@@ -36,7 +60,7 @@ export default (bill) => {
         </div>
         <div class="col-sm" id="dashboard-form-col2">
           <label for="commentary" class="bold-label">Commentaire</label>
-          <div class='textarea-field' style="height: 300px;"> ${bill.commentary} </div>
+          <div class='textarea-field' style="height: 300px;"> ${commentary} </div>
         </div>
       </div>
       <div class="row">
@@ -65,7 +89,7 @@ export default (bill) => {
         <div class="col-sm">
           <label for="file" class="bold-label">Justificatif</label>
             <div class='input-field input-flex file-flex'>
-            <span id="file-name-admin">${bill.fileName}</span>
+            <span id="file-name-admin">${fileName}</span>
             <div class='icons-container'>
               <span id="icon-eye-d" data-testid="icon-eye-d" data-bill-url="${bill.fileUrl}"> ${eyeWhite} </span>
             </div>
@@ -84,7 +108,7 @@ export default (bill) => {
                : `
         <div class="col-sm">
           <label for="commentary-admin" class="bold-label">Votre commentaire</label>
-          <div class='input-field'> ${bill.commentAdmin} </div>
+          <div class='input-field'> ${adminCommentary} </div>
         </div>
        `
        }
