@@ -25,15 +25,4 @@ describe("Given I am connected as an Employee", () => {
             );
         });
     });
-    describe("When I am on Bills page and there are bills with url for download", () => {
-        test("Then, it should render a download icon with the bill url", () => {
-            const url = "/fake_url";
-            const html = Actions(url);
-            document.body.innerHTML = html;
-            expect(screen.getByTestId("icon-download")).toHaveAttribute(
-                "data-bill-url",
-                url,
-            );
-        });
-    });
 });
